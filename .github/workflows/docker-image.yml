@@ -2,8 +2,6 @@ name: Docker Image CI
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
 
 jobs:
   docker:
@@ -15,12 +13,6 @@ jobs:
         with:
           owner: brutella
           repo: hkknx-public
-      - name: Example of consumption of the output
-        env:
-          HKKNX: ${{ steps.hkknx-public_releases.outputs.latest_tag }}
-        run: |
-          echo "Version $HKKNX"
-          
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -30,5 +22,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        env:
+          HKKNX: ${{ steps.hkknx-public_releases.outputs.latest_tag }}
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm
+          push: true
+          tags: bugroger/hkknx:latest,bugroger/hkknx:${{ steps.hkknx-public_releases.outputs.latest_tag }}
 
-          
